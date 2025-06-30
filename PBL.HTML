@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bookshelf App</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Pirata+One&family=Roboto&display=swap');
+
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: linear-gradient(to bottom, #87ceeb, #fdf6e3); 
+  color: #222;
+}
+
+header {
+  background: linear-gradient(90deg, #003366, #336699); 
+  color: #ffd700; /* emas */
+  padding: 30px;
+  text-align: center;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  font-family: 'Pirata One', cursive;
+  letter-spacing: 2px;
+  font-size: 1.5em;
+}
+
+h1, h2 {
+  font-family: 'Pirata One', cursive;
+  color: #cc0000;
+  text-shadow: 2px 2px 2px #fffacd; 
+}
+
+section {
+  background-color: #fff8dc; 
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 15px;
+  border: 2px solid #deb887; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+form div {
+  margin-bottom: 15px;
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 8px;
+  border: 2px solid #f4a460;
+  background-color: #fff;
+  font-size: 1rem;
+}
+
+input[type="checkbox"] {
+  transform: scale(1.2);
+  margin-left: 10px;
+  accent-color: #cc0000;
+}
+
+button {
+  background-color: #ff4500; 
+  color: #fff;
+  border: none;
+  padding: 10px 25px;
+  margin-top: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+  background-color: #c82300;
+  transform: scale(1.05);
+}
+
+.book-item {
+  border: 2px dashed #daa520;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  background-color: #fffaf0; 
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.book-item h3 {
+  margin: 0 0 5px;
+  color: #003366;
+}
+
+.book-item p {
+  margin: 3px 0;
+  color: #444;
+}
+
+.book-item button {
+  margin-right: 8px;
+  background-color: #4682b4;
+  border: none;
+  color: #fff;
+}
+
+.book-item button:hover {
+  background-color: #27496d;
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.05); opacity: 1; }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+.animate-bounce {
+  animation: bounceIn 0.5s ease;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+}
+
+.animate-fade {
+  animation: fadeOut 0.3s forwards;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Bookshelf App</h1>
+    </header>
+
+    <main>
+      <section>
+        <h2>Tambah Buku Baru</h2>
+        <form id="bookForm">
+          <div>
+            <label for="bookFormTitle">Judul</label>
+            <input id="bookFormTitle" type="text" required />
+          </div>
+          <div>
+            <label for="bookFormAuthor">Penulis</label>
+            <input id="bookFormAuthor" type="text" required />
+          </div>
+          <div>
+            <label for="bookFormYear">Tahun</label>
+            <input id="bookFormYear" type="number" required />
+          </div>
+          <div>
+            <label for="bookFormIsComplete">Selesai dibaca</label>
+            <input id="bookFormIsComplete" type="checkbox" />
+          </div>
+          <button type="submit">Masukkan Buku</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Cari Buku</h2>
+        <form id="searchBook">
+          <label for="searchBookTitle">Judul</label>
+          <input id="searchBookTitle" type="text" />
+          <button type="submit">Cari</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Belum selesai dibaca</h2>
+        <div id="incompleteBookList"></div>
+      </section>
+
+      <section>
+        <h2>Selesai dibaca</h2>
+        <div id="completeBookList"></div>
+      </section>
+    </main>
+
+    <script>
+      const books = [];
+
+      document.getElementById("bookForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const title = document.getElementById("bookFormTitle").value;
+        const author = document.getElementById("bookFormAuthor").value;
+        const year = document.getElementById("bookFormYear").value;
+        const isComplete = document.getElementById("bookFormIsComplete").checked;
+
+        const book = {
+          id: +new Date(),
+          title,
+          author,
+          year,
+          isComplete
+        };
+
+        books.push(book);
+        renderBooks();
+        this.reset();
+      });
+
+      document.getElementById("searchBook").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const query = document.getElementById("searchBookTitle").value.toLowerCase();
+        renderBooks(query);
+      });
+
+      function renderBooks(filter = "") {
+        const incompleteBookList = document.getElementById("incompleteBookList");
+        const completeBookList = document.getElementById("completeBookList");
+
+        incompleteBookList.innerHTML = "";
+        completeBookList.innerHTML = "";
+
+        books
+        .filter(book => book.title.toLowerCase().includes(filter))
+        .forEach(book => {
+        const bookItem = document.createElement("div");
+        bookItem.classList.add("book-item", "animate-bounce");
+        bookItem.setAttribute("data-id", book.id);
+
+      bookItem.innerHTML = `
+        <h3>${book.title}</h3>
+        <p>Penulis: ${book.author}</p>
+        <p>Tahun: ${book.year}</p>
+        <button onclick="toggleBook(${book.id})">${book.isComplete ? 'Belum selesai' : 'Selesai dibaca'}</button>
+        <button onclick="deleteBook(${book.id})">Hapus</button>
+      `;
+
+      if (book.isComplete) {
+        completeBookList.appendChild(bookItem);
+      } else {
+        incompleteBookList.appendChild(bookItem);
+      }
+    });
+}
+  
+
+      function toggleBook(id) {
+        const book = books.find(b => b.id === id);
+        if (book) {
+          book.isComplete = !book.isComplete;
+          renderBooks();
+        }
+      }
+
+     function deleteBook(id) {
+     const index = books.findIndex(b => b.id === id);
+         if (index !== -1) {
+         const bookElement = document.querySelector(`[data-id='${id}']`);
+         if (bookElement) {
+        bookElement.classList.add("animate-fade");
+        setTimeout(() => {
+        books.splice(index, 1);
+        renderBooks();
+      }, 300); // Tunggu animasi selesai
+    } else {
+      books.splice(index, 1);
+      renderBooks();
+    }
+  }
+}
+
+    </script>
+  </body>
+</html>
